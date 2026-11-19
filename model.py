@@ -12,28 +12,16 @@ class Bands(db.Model):
     FormedYear = db.Column(db.Integer)
     HomeLocation = db.Column(db.String(80))
     # Relationship: One band has many members + albums
-    memberships = db.relationship('Memberships', backref='band', lazy=True)
+    members = db.relationship('Members', backref='band', lazy=True)
     albums = db.relationship('Albums', backref='band', lazy=True)
-    album_credits = db.relationship('AlbumCredits', backref='band', lazy=True)
 
 
 class Members(db.Model):
     MemberID = db.Column(db.Integer, primary_key=True)
-    MemberName = db.Column(db.String(80), nullable=False)
-    MainPosition = db.Column(db.String(80))
-    # Relationship: One member can be part of many bands
-    memberships = db.relationship('Memberships', backref='member', lazy=True)
-
-
-class Memberships(db.Model):
-    MembershipID = db.Column(db.Integer, primary_key=True)
     BandID = db.Column(db.Integer, db.ForeignKey(
         'bands.BandID'), nullable=False)
-    MemberID = db.Column(db.Integer, db.ForeignKey(
-        'members.MemberID'), nullable=False)
-    Role = db.Column(db.String(80))
-    StartYear = db.Column(db.Integer)
-    EndYear = db.Column(db.Integer) # NULL if still active
+    MemberName = db.Column(db.String(80), nullable=False)
+    MainPosition = db.Column(db.String(80))
 
 
 class Albums(db.Model):
@@ -42,12 +30,3 @@ class Albums(db.Model):
         'bands.BandID'), nullable=False)
     AlbumTitle = db.Column(db.String(80), nullable=False)
     ReleaseYear = db.Column(db.Integer)
-    album_credits = db.relationship('AlbumCredits', backref='album', lazy=True)
-
-
-class AlbumCredits(db.Model):
-    AlbumCreditID = db.Column(db.Integer, primary_key=True)
-    BandID = db.Column(db.Integer, db.ForeignKey(
-        'bands.BandID'), nullable=False)
-    AlbumID = db.Column(db.Integer, db.ForeignKey(
-        'albums.AlbumID'), nullable=False)
