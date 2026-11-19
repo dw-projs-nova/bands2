@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from dotenv import load_dotenv
 from model import db, Bands, Members, Albums, admin
 from flask_admin.contrib.sqla import ModelView
@@ -32,11 +33,31 @@ admin.add_view(ModelView(Albums, db.session, category="Albums"))
 def index():
     return render_template('index.html')
 
-
 @app.route('/bands/view')
 def view_by_band():
-    bands = Bands.query.all()
-    return render_template('display_by_band.html', bands=bands)
+    q = request.args.get('q', '').strip()
+
+    query = Bands.query
+    if q:
+        like_q = f"%{q}%"
+        query = (
+            query.outerjoin(Memberships, Bands.BandID == Memberships.BandID)
+            .outerjoin(Members, Memberships.MemberID == Members.MemberID)
+            .outerjoin(Albums, Bands.BandID == Albums.BandID)
+            .filter(
+                or_(
+                    Bands.BandName.ilike(like_q),
+                    Bands.HomeLocation.ilike(like_q),
+                    Members.MemberName.ilike(like_q),
+                    Memberships.Role.ilike(like_q),
+                    Albums.AlbumTitle.ilike(like_q),
+                )
+            )
+            .distinct()
+        )
+
+    bands = query.order_by(Bands.BandName).all()
+    return render_template('display_by_band.html', bands=bands, q=q)
 
 
 @app.route('/bands/view/<int:id>')
@@ -74,6 +95,17 @@ def add_member():
     return render_template('add_member.html', bands=bands)
 
 
+@app.route('/albums/<int:id>')
+def view_album(id):
+    album = Albums.query.get_or_404(id)
+    collaborators = [
+        credit for credit in album.album_credits if credit.BandID != album.BandID
+    ]
+    return render_template(
+        'view_album.html',
+        album=album,
+        collaborators=collaborators,
+    )
 @app.route('/albums/add', methods=['GET', 'POST'])
 def add_album():
     bands = Bands.query.all()
