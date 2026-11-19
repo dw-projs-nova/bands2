@@ -2,28 +2,51 @@
 {% block title %} {{super()}} - {{band.BandName}} {% endblock %}
 {% block content %}
 <section>
-    <div class="container my-5">
-        <div class="band-focus p-5 text-center bg-body-secondary rounded-3">
-            <h1 class="text-body-emphasis">{{ band.BandName }} ({{ band.FormedYear }})</h1>
-            <p class="col-lg-8 mx-auto fs-5 text-muted">
+  <div class="container my-5">
+    <div class="band-focus p-5 text-center bg-body-secondary rounded-3">
+      <h1 class="text-body-emphasis">{{ band.BandName }} ({{ band.FormedYear }})</h1>
+      <p class="col-lg-8 mx-auto fs-5 text-muted">
+        <strong>Home:</strong> {{ band.HomeLocation }}
+      </p>
 
-            <p><strong>Home:</strong> {{ band.HomeLocation }}</p>
+      <h4>Members / Memberships</h4>
+      <ul class="list-unstyled">
+        {% for m in band.members %}
+        <li>
+          {{ m.member.MemberName }} - {{ m.Role or m.member.MainPosition }}
+          {% if m.StartYear %} ({{ m.StartYear }}{% if m.EndYear %} – {{ m.EndYear }}{% else %} - present{% endif %}){% endif %}
+          &nbsp;
+          <a href="{{ url_for('edit_membership', id=m.MembershipID) }}">Edit</a>
+          |
+          <a href="{{ url_for('delete_membership', id=m.MembershipID) }}">Delete</a>
+        </li>
+        {% else %}
+        <li><em>No members assigned yet</em></li>
+        {% endfor %}
+      </ul>
 
-            <h4>Members</h4>
-            <ul>
-                {% for member in band.members %}
-                <li>{{ member.MemberName }} – {{ member.MainPosition }}</li>
-                {% endfor %}
+      <h4>Albums</h4>
+      <ul class="list-unstyled">
+        {% for album in band.albums %}
+        <li>
+          <strong>{{ album.AlbumTitle }}</strong> ({{ album.ReleaseYear }})
+          {% set collaborators = album.album_credits | selectattr("BandID", "ne", album.BandID) | list %}
+          {% if collaborators %}
+          <div>
+            <strong>Collaborators:</strong>
+            <ul class="list-unstyled">
+              {% for credit in collaborators %}
+              <li>{{ credit.band.BandName }} ({{ credit.CreditType }})</li>
+              {% endfor %}
             </ul>
-
-            <h4>Albums</h4>
-            <ul>
-                {% for album in band.albums %}
-                <li>{{ album.AlbumTitle }} ({{ album.ReleaseYear }})</li>
-                {% endfor %}
-            </ul>
-            </p>
-        </div>
+          </div>
+          {% endif %}
+        </li>
+        {% else %}
+        <li><em>No albums listed yet</em></li>
+        {% endfor %}
+      </ul>
     </div>
+  </div>
 </section>
 {% endblock %}

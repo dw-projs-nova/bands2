@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %} {{super()}} - Add Member {% endblock %}
+{% block content %}
+<h2>Edit Band</h2>
+<form method="post" id="bandForm">
+    <input type="hidden" name="band_id" value="{{ band.BandID }}">
+    <label>Name:</label><input type="text" name="bandname" value="{{ band.BandName }}"><br>
+    <label>Formed Year:</label><input type="number" name="formedyear" value="{{ band.FormedYear }}"><br>
+    <label>Home Location:</label><input type="text" name="homelocation" value="{{ band.HomeLocation }}"><br>
+
+    <button type="submit">Save</button>
+</form>
+{% endblock %}
